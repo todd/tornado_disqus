@@ -47,7 +47,7 @@ class AuthLoginHandler(BaseHandler, DisqusMixin):
 			)
 			return
 		self.authorize_redirect(redirect_uri = redirect, client_id = self.settings["disqus_consumer_key"], 
-								extra_params = {"response_type": "code", "scope": "read,write"})
+			extra_params = {"response_type": "code", "scope": "read,write"})
 		
 	def _on_auth(self, user):
 		if not user:
