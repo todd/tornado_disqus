@@ -5,13 +5,20 @@
 		<title>tornado_disqus Demo</title>
 	</head>
 	<body>
-		<b>{{ current_user["username"] }}</b> - <a href="/logout">{{ _("Sign out") }}</a>
+		<b>Signed in as: {{ current_user["username"] }}</b> - <a href="/logout">Sign Out</a>
 		<p>
+			This is a simple demo of the DisqusMixin for Tornado that will display all the posts you've made using Disqus.<br />
+			While this is a pretty simple demo, the Mixin can be used with any of the Disqus API methods.<br />
+			The source for the Mixin can be found <a href="https://github.com/toddward/tornado_disqus">on GitHub</a>.<br />
+			You can find more information about Tornado at <a href="http://tornadoweb.org">tornadoweb.org</a>.
+		</p>
+		<b>All of {{ current_user["username"] }}'s posts:</b>
+		<ul>
 			{% for post in posts %}
 				{% if "message" in post %}
-					<p>{{ post["message"] }}</p>
+					<li>{{ post["message"] }}</li>
 				{% end %}
-			{% end %}
-		</p>	
+			{% end %}	
+		</ul>
 	</body>
 </html>

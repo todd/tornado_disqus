@@ -1,3 +1,13 @@
+"""
+A Tornado Mixin for authenticating with and making calls to the Disqus API
+
+The DisqusMixin class is designed to reflect the default Mixins contained
+in tornado.auth. This class varies from those due to different implementations
+of OAuth2.
+
+Example usage of the mixin for authentication and making API calls can be
+found in the included example application.
+"""
 import logging, urllib
 import tornado.auth
 
@@ -5,13 +15,13 @@ from tornado import escape
 from tornado.httpclient import AsyncHTTPClient
 
 class DisqusMixin(tornado.auth.OAuth2Mixin):
-	# Mixin for authenticating and making API calls to Disqus
+	# Mixin for authenticating with and making API calls to Disqus
 	_OAUTH_ACCESS_TOKEN_URL = "https://disqus.com/api/oauth/2.0/access_token/?"
 	_OAUTH_AUTHORIZE_URL = "https://disqus.com/api/oauth/2.0/authorize/?"
 	_OAUTH_NO_CALLBACKS = False
 	
 	def get_authenticated_user(self, redirect_uri, client_id, client_secret, code, callback):
-		# Some comments here about usage
+		# Handles logging the user in to Disqus
 		http = AsyncHTTPClient()
 		args = {
 			"redirect_uri": redirect_uri,
@@ -30,6 +40,7 @@ class DisqusMixin(tornado.auth.OAuth2Mixin):
 			callback, fields))							
 	
 	def _on_access_token(self, redirect_uri, client_id, client_secret, callback, fields, response):
+		# Callback for get_authenticated_user response
 		if response.error:
 			logging.warning("Disqus auth error: %s" % str(response))
 			callback(None)
@@ -50,6 +61,7 @@ class DisqusMixin(tornado.auth.OAuth2Mixin):
 			)
 		
 	def _on_user_details(self, callback, session, fields, user):
+		# Callback for _on_access_token response
 		if user is None:
 			callback(None)
 			return
@@ -62,7 +74,8 @@ class DisqusMixin(tornado.auth.OAuth2Mixin):
 		callback(fieldmap)
 	
 	def disqus_request(self, path, callback, access_token=None, post_args=None, **args):
-		# Some stuff about request usage here
+		# Method for making calls to the Disqus API
+		# Takes in path to the API method as a parameter
 		url = "https://disqus.com/api/3.0" + path
 		all_args = {}
 		if access_token:
@@ -71,14 +84,15 @@ class DisqusMixin(tornado.auth.OAuth2Mixin):
 			all_args.update(post_args or {})
 		if all_args:
 			url += "?" + urllib.urlencode(all_args)
-		callback = self.async_callback(self._on_disqus_request, callback)
+		callback = self.async_callback(self._on_disqus_response, callback)
 		http = AsyncHTTPClient()
 		if post_args is not None:
 			http.fetch(url, method="POST", body=urllib.urlencode(post_args), callback=callback)
 		else:
 			http.fetch(url, callback=callback)
 			
-	def _on_disqus_request(self, callback, response):
+	def _on_disqus_response(self, callback, response):
+		# Callback for disqus_request response
 		if response.error:
 			logging.warning("Error - response %s fetching %s" % (response.error, response.request.url))
 			callback(None)
